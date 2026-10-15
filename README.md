@@ -19,14 +19,14 @@ Run it with `bun run src/main.ts split FILE`. There is no build step.
 ## Usage
 
 ```
-usage: stmtsplit split [--dialect NAME] FILE
+usage: stmtsplit split [--dialect NAME] [--only N] FILE
        stmtsplit count [--dialect NAME] FILE
        stmtsplit check [--dialect NAME] FILE
 ```
 
 FILE is a path, or `-` for standard input. NAME is `ansi` (the default), `postgres` or `mysql`. The option is written `--dialect NAME` or `--dialect=NAME`; when it is repeated the last one wins, and options and FILE may come in any order. `--help` as the only argument prints the usage lines.
 
-- `split` prints the statements, one block per statement, each with a header line giving its number and its line or lines.
+- `split` prints the statements, one block per statement, each with a header line giving its number and its line or lines. `--only N` (a whole number from 1 to 1000000, `split` only) prints only statement number N, with the same header; the numbers are those of the whole script.
 - `count` prints the number of statements.
 - `check` reports constructs that are not closed, or says that the script is ok with its number of statements.
 
@@ -61,6 +61,15 @@ INSERT INTO users (id, name) VALUES (1, 'O''Brien'), (2, 'x -- y')
 -- #3 line 9
 SELECT "weird;name" FROM users
 ```
+
+`stmtsplit split --only 2 migrate.sql` prints:
+
+```
+-- #2 line 8
+INSERT INTO users (id, name) VALUES (1, 'O''Brien'), (2, 'x -- y')
+```
+
+If the script has fewer than N statements, `stmtsplit: DISPLAY: no statement N (the script has M statements)` goes to standard error and the exit code is 2; a script with problems is reported first, as without the option.
 
 ## Dialects
 

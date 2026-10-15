@@ -10,7 +10,7 @@ export interface Io {
 }
 
 const USAGE =
-  "usage: stmtsplit split [--dialect NAME] FILE\n" +
+  "usage: stmtsplit split [--dialect NAME] [--only N] FILE\n" +
   "       stmtsplit count [--dialect NAME] FILE\n" +
   "       stmtsplit check [--dialect NAME] FILE\n";
 
@@ -29,7 +29,7 @@ export function run(args: string[], io: Io): number {
     }
     throw error;
   }
-  const { command, dialect, file } = parsed;
+  const { command, dialect, file, only } = parsed;
   const display = file === "-" ? "<stdin>" : file.replaceAll("\\", "/");
   let bytes: Uint8Array;
   try {
@@ -56,6 +56,19 @@ export function run(args: string[], io: Io): number {
   }
   if (command === "count") {
     io.out(`${result.statements.length}\n`);
+    return 0;
+  }
+  if (only !== undefined) {
+    const statement = result.statements[only - 1];
+    if (statement === undefined) {
+      const count = result.statements.length;
+      const statementLabel = count === 1 ? "statement" : "statements";
+      io.err(
+        `stmtsplit: ${display}: no statement ${only} (the script has ${count} ${statementLabel})\n`,
+      );
+      return 2;
+    }
+    io.out(formatSplit([statement]));
     return 0;
   }
   const output = formatSplit(result.statements);

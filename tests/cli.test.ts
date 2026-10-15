@@ -134,7 +134,7 @@ const myOutput = `${[
 ].join("\n")}\n`;
 
 const usageLines = [
-  "usage: stmtsplit split [--dialect NAME] FILE",
+  "usage: stmtsplit split [--dialect NAME] [--only N] FILE",
   "       stmtsplit count [--dialect NAME] FILE",
   "       stmtsplit check [--dialect NAME] FILE",
 ];
