@@ -96,6 +96,8 @@ const result = splitSql("SELECT 1; SELECT 2;", "postgres");
 // result.problems: { line, message }[]
 ```
 
+A project that has stmtsplit installed imports the same names from the package itself, `import { splitSql } from "stmtsplit";`: the `exports` field of `package.json` maps `stmtsplit` to `src/index.ts` and `stmtsplit/package.json` to `package.json`, and there is still no build step.
+
 `splitSql(text, dialect = "ansi")` never throws. A `Statement` has `index` (from 1), `startLine`, `endLine` and `text`; a `Problem` has `line` and `message`. The types `Statement`, `Problem`, `ScanResult` and `Dialect` and the constant `DIALECTS` are exported too.
 
 ## Development
