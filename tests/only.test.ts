@@ -229,7 +229,9 @@ describe("--only documentation", () => {
   test("README documents usage, behavior, and the selected output", () => {
     const raw = readFileSync(join(import.meta.dir, "..", "README.md"), "utf8");
     const readme = raw.replaceAll("\r\n", "\n");
-    expect(readme).toContain("usage: stmtsplit split [--dialect NAME] [--only N] FILE");
+    expect(readme).toContain(
+      "usage: stmtsplit split [--dialect NAME] [--only N] [--min-lines N] FILE",
+    );
     expect(readme).toContain(
       "`--only N` (a whole number from 1 to 1000000, `split` only) prints only statement number N, with the same header; the numbers are those of the whole script.",
     );

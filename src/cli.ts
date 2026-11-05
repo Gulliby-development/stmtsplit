@@ -10,8 +10,8 @@ export interface Io {
 }
 
 const USAGE =
-  "usage: stmtsplit split [--dialect NAME] [--only N] FILE\n" +
-  "       stmtsplit count [--dialect NAME] FILE\n" +
+  "usage: stmtsplit split [--dialect NAME] [--only N] [--min-lines N] FILE\n" +
+  "       stmtsplit count [--dialect NAME] [--min-lines N] FILE\n" +
   "       stmtsplit check [--dialect NAME] FILE\n";
 
 export function run(args: string[], io: Io): number {
@@ -29,7 +29,7 @@ export function run(args: string[], io: Io): number {
     }
     throw error;
   }
-  const { command, dialect, file, only } = parsed;
+  const { command, dialect, file, only, minLines } = parsed;
   const display = file === "-" ? "<stdin>" : file.replaceAll("\\", "/");
   let bytes: Uint8Array;
   try {
@@ -54,8 +54,11 @@ export function run(args: string[], io: Io): number {
     io.err(formatProblems(display, result.problems, "stmtsplit: "));
     return 1;
   }
+  const lineCount = (statement: { startLine: number; endLine: number }) =>
+    statement.endLine - statement.startLine + 1;
+  const kept = result.statements.filter((statement) => lineCount(statement) >= (minLines ?? 1));
   if (command === "count") {
-    io.out(`${result.statements.length}\n`);
+    io.out(`${kept.length}\n`);
     return 0;
   }
   if (only !== undefined) {
@@ -68,10 +71,14 @@ export function run(args: string[], io: Io): number {
       );
       return 2;
     }
+    if (minLines !== undefined && lineCount(statement) < minLines) {
+      io.err(`stmtsplit: ${display}: statement ${only} has fewer than ${minLines} lines\n`);
+      return 2;
+    }
     io.out(formatSplit([statement]));
     return 0;
   }
-  const output = formatSplit(result.statements);
+  const output = formatSplit(kept);
   if (output !== "") {
     io.out(output);
   }
