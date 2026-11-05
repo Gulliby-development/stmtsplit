@@ -19,8 +19,8 @@ Run it with `bun run src/main.ts split FILE`. There is no build step.
 ## Usage
 
 ```
-usage: stmtsplit split [--dialect NAME] [--only N] FILE
-       stmtsplit count [--dialect NAME] FILE
+usage: stmtsplit split [--dialect NAME] [--only N] [--min-lines N] FILE
+       stmtsplit count [--dialect NAME] [--min-lines N] FILE
        stmtsplit check [--dialect NAME] FILE
 ```
 
@@ -28,6 +28,7 @@ FILE is a path, or `-` for standard input. NAME is `ansi` (the default), `postgr
 
 - `split` prints the statements, one block per statement, each with a header line giving its number and its line or lines. `--only N` (a whole number from 1 to 1000000, `split` only) prints only statement number N, with the same header; the numbers are those of the whole script.
 - `count` prints the number of statements.
+- `--min-lines N` (a whole number from 1 to 1000000, `split` and `count` only) leaves out the statements that span fewer than N lines. The numbers in the headers stay those of the whole script, and `count` counts only the statements that are left.
 - `check` reports constructs that are not closed, or says that the script is ok with its number of statements.
 
 Problems are reported as `DISPLAY:LINE: MESSAGE`, where DISPLAY is the file name as written (backslashes replaced by `/`, or `<stdin>`) and LINE is the line where the construct starts. `split` and `count` print the same lines on standard error with the prefix `stmtsplit: ` when the script has problems.
@@ -70,6 +71,8 @@ INSERT INTO users (id, name) VALUES (1, 'O''Brien'), (2, 'x -- y')
 ```
 
 If the script has fewer than N statements, `stmtsplit: DISPLAY: no statement N (the script has M statements)` goes to standard error and the exit code is 2; a script with problems is reported first, as without the option.
+
+`stmtsplit split --min-lines 2 migrate.sql` prints only the first statement of `migrate.sql`, with the header `-- #1 lines 2-5`. `stmtsplit count --min-lines 2 migrate.sql` prints `1`. With `--only N` the statement is printed only when it spans at least that many lines; otherwise `stmtsplit: DISPLAY: statement N has fewer than M lines` goes to standard error and the exit code is 2.
 
 ## Dialects
 

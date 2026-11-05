@@ -6,6 +6,7 @@ export interface ParsedArgs {
   command: "split" | "count" | "check";
   dialect: Dialect;
   only?: number;
+  minLines?: number;
   file: string;
 }
 
@@ -27,6 +28,7 @@ export function parseArgs(args: string[]): ParsedArgs {
   }
   let dialectName = "ansi";
   let onlyValue: string | undefined;
+  let minLinesValue: string | undefined;
   const positionals: string[] = [];
   for (let i = 1; i < args.length; i++) {
     const arg = args[i] ?? "";
@@ -48,6 +50,15 @@ export function parseArgs(args: string[]): ParsedArgs {
       i++;
     } else if (arg.startsWith("--only=")) {
       onlyValue = arg.slice("--only=".length);
+    } else if (arg === "--min-lines") {
+      const value = args[i + 1];
+      if (value === undefined) {
+        throw new UsageError("--min-lines needs a value");
+      }
+      minLinesValue = value;
+      i++;
+    } else if (arg.startsWith("--min-lines=")) {
+      minLinesValue = arg.slice("--min-lines=".length);
     } else if (arg.startsWith("-") && arg !== "-") {
       throw new UsageError(`unknown option "${arg}"`);
     } else {
@@ -68,6 +79,17 @@ export function parseArgs(args: string[]): ParsedArgs {
   if (onlyValue !== undefined && command !== "split") {
     throw new UsageError("--only is only valid for split");
   }
+  if (
+    minLinesValue !== undefined &&
+    (!/^[1-9][0-9]*$/.test(minLinesValue) || Number(minLinesValue) > 1_000_000)
+  ) {
+    throw new UsageError(
+      `invalid --min-lines "${minLinesValue}" (expected a whole number from 1 to 1000000)`,
+    );
+  }
+  if (minLinesValue !== undefined && command === "check") {
+    throw new UsageError("--min-lines is only valid for split and count");
+  }
   const file = positionals[0];
   if (file === undefined) {
     throw new UsageError("missing FILE");
@@ -79,6 +101,7 @@ export function parseArgs(args: string[]): ParsedArgs {
     command,
     dialect: dialectName,
     ...(onlyValue === undefined ? {} : { only: Number(onlyValue) }),
+    ...(minLinesValue === undefined ? {} : { minLines: Number(minLinesValue) }),
     file,
   };
 }
